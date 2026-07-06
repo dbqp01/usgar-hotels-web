@@ -218,11 +218,11 @@ const attractionsSchema = {
 
       // Show/hide empty state
       if (visibleCount === 0) {
-        emptyState.classList.remove('hidden');
-        grid.classList.add('hidden');
+        emptyState!.classList.remove('hidden');
+        grid!.classList.add('hidden');
       } else {
-        emptyState.classList.add('hidden');
-        grid.classList.remove('hidden');
+        emptyState!.classList.add('hidden');
+        grid!.classList.remove('hidden');
       }
     }
 

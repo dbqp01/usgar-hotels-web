@@ -1,8 +1,8 @@
 ---
-import { Image } from 'astro:assets';
-import { getRelativeLocaleUrl } from 'astro:i18n';
-import type { Room } from '../data/rooms';
-import { useTranslations } from '../i18n/utils';
+import { Image } from "astro:assets";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import type { Room } from "../data/rooms";
+import { useTranslations } from "../i18n/utils";
 
 interface Props {
   room: Room;
@@ -11,95 +11,145 @@ interface Props {
 
 const { room, index = 0 } = Astro.props;
 
-const lang = (Astro.currentLocale || 'en') as 'en' | 'es';
+const lang = (Astro.currentLocale || "en") as "en" | "es";
 const t = useTranslations(lang);
 
 // Dynamically import the first photo from the room's folder
-const allImages = import.meta.glob<{ default: ImageMetadata }>('../assets/rooms/**/*.jpg');
+const allImages = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/rooms/**/*.jpg",
+);
 const roomImages = Object.entries(allImages)
   .filter(([path]) => path.includes(`/${room.photoFolder}/`))
   .sort(([a], [b]) => a.localeCompare(b));
 
 // Get the first image or a fallback
 const firstImageEntry = roomImages[0];
-const firstImage = firstImageEntry ? (await firstImageEntry[1]()).default : null;
+const firstImage = firstImageEntry
+  ? (await firstImageEntry[1]()).default
+  : null;
 
 // Translate bedding info dynamically
 const translatedBeds = room.beds
-  .replace('single beds', lang === 'es' ? 'camas individuales' : 'single beds')
-  .replace('single bed', lang === 'es' ? 'cama individual' : 'single bed')
-  .replace('king bed', lang === 'es' ? 'cama king' : 'king bed')
-  .replace('king +', lang === 'es' ? 'king +' : 'king +');
+  .replace("single beds", lang === "es" ? "camas individuales" : "single beds")
+  .replace("single bed", lang === "es" ? "cama individual" : "single bed")
+  .replace("king bed", lang === "es" ? "cama king" : "king bed")
+  .replace("king +", lang === "es" ? "king +" : "king +");
 ---
 
 <a
   href={getRelativeLocaleUrl(lang, `rooms/${room.slug}`)}
   class:list={[
-    'group block rounded-2xl overflow-hidden bg-white dark:bg-[#1C1917] shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1 animate-on-scroll stagger-child',
+    "group block rounded-2xl overflow-hidden bg-white dark:bg-[#1C1917] shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1 animate-on-scroll stagger-child",
   ]}
   style={`transition-delay: ${index * 0.1}s`}
   data-astro-prefetch
 >
   <!-- Image -->
   <div class="relative aspect-[4/3] overflow-hidden">
-    {firstImage ? (
-      <Image
-        src={firstImage}
-        alt={room.name[lang]}
-        width={600}
-        height={450}
-        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        loading="lazy"
-      />
-    ) : (
-      <div class="w-full h-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center">
-        <span class="text-4xl">🏨</span>
-      </div>
-    )}
+    {
+      firstImage ? (
+        <Image
+          src={firstImage}
+          alt={room.name[lang]}
+          width={600}
+          height={450}
+          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
+        />
+      ) : (
+        <div class="w-full h-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center">
+          <span class="text-4xl">🏨</span>
+        </div>
+      )
+    }
 
     <!-- Price Overlay (appears on hover) -->
-    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6"
+    >
       <span class="text-white text-2xl font-display font-bold">
-        {t('rooms.from')} ${room.pricePerNight}<span class="text-sm font-body font-normal opacity-80">/{lang === 'es' ? 'noche' : 'night'}</span>
+        {t("rooms.from")} ${room.pricePerNight}<span
+          class="text-sm font-body font-normal opacity-80"
+          >/{lang === "es" ? "noche" : "night"}</span
+        >
       </span>
     </div>
 
     <!-- Photo count badge -->
-    {room.photoCount > 0 && (
-      <div class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        {room.photoCount}
-      </div>
-    )}
+    {
+      room.photoCount > 0 && (
+        <div class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+          <svg
+            class="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          {room.photoCount}
+        </div>
+      )
+    }
 
     <!-- Video badge -->
-    {room.hasVideoTour && (
-      <div class="absolute top-3 left-3 bg-primary/80 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        {t('rooms.videoTour')}
-      </div>
-    )}
+    {
+      room.hasVideoTour && (
+        <div class="absolute top-3 left-3 bg-primary/80 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+          <svg
+            class="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+          {t("rooms.videoTour")}
+        </div>
+      )
+    }
   </div>
 
   <!-- Content -->
   <div class="p-5">
-    <h3 class="font-display text-xl mb-1 group-hover:text-primary transition-colors duration-300">
+    <h3
+      class="font-display text-xl mb-1 group-hover:text-primary transition-colors duration-300"
+    >
       {room.name[lang]}
     </h3>
     <p class="text-sm text-[#57534E] dark:text-[#A8A29E] mb-3 line-clamp-2">
       {room.description[lang]}
     </p>
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3 text-xs text-[#57534E] dark:text-[#A8A29E]">
+      <div
+        class="flex items-center gap-3 text-xs text-[#57534E] dark:text-[#A8A29E]"
+      >
         <span class="flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+            ></path>
           </svg>
-          {t('rooms.upTo')} {room.maxGuests}
+          {t("rooms.upTo")}
+          {room.maxGuests}
         </span>
         <span class="flex items-center gap-1">
           🛏️ {translatedBeds}
