@@ -1,0 +1,152 @@
+/* Google Fonts — must be first @import */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* ============================================
+   USGAR Hotels — Design System
+   Tailwind CSS v4 — CSS-first configuration
+   ============================================ */
+
+/* Dark mode: class-based toggle (NOT media query) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   Theme Tokens
+   ============================================ */
+@theme {
+  /* Brand colors */
+  --color-primary: #9B6CB5;
+  --color-primary-light: #B48ACC;
+  --color-primary-dark: #7A4F96;
+  --color-secondary: #F5B731;
+  --color-secondary-light: #F7C75A;
+  --color-secondary-dark: #D99E1B;
+  --color-tertiary: #2DB5A0;
+  --color-tertiary-light: #4ECBB8;
+  --color-tertiary-dark: #1F9484;
+
+  /* Surface colors */
+  --color-surface-light: #FAFAF9;
+  --color-surface-dark: #0C0A09;
+  --color-surface-card-light: #FFFFFF;
+  --color-surface-card-dark: #1C1917;
+  --color-text-primary-light: #1C1917;
+  --color-text-primary-dark: #FAFAF9;
+  --color-text-secondary-light: #57534E;
+  --color-text-secondary-dark: #A8A29E;
+
+  /* Typography */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Outfit', sans-serif;
+
+  /* Custom animations */
+  --animate-pulse-soft: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-slide-up: slide-up 0.6s ease-out;
+  --animate-fade-in: fade-in 0.8s ease-out;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+
+  /* Keyframes */
+  @keyframes pulse-soft {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+  }
+
+  @keyframes slide-up {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+/* ============================================
+   Scroll Animations
+   ============================================ */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children in grids */
+.stagger-child { transition-delay: 0s; }
+.stagger-child:nth-child(1) { transition-delay: 0.1s; }
+.stagger-child:nth-child(2) { transition-delay: 0.2s; }
+.stagger-child:nth-child(3) { transition-delay: 0.3s; }
+.stagger-child:nth-child(4) { transition-delay: 0.4s; }
+.stagger-child:nth-child(5) { transition-delay: 0.5s; }
+.stagger-child:nth-child(6) { transition-delay: 0.6s; }
+
+/* ============================================
+   Glassmorphism Utilities
+   ============================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(12, 10, 9, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================
+   Selection Colors
+   ============================================ */
+::selection {
+  background: rgba(155, 108, 181, 0.3);
+  color: inherit;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(155, 108, 181, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 108, 181, 0.5);
+}

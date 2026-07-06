@@ -1,0 +1,517 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { rooms } from '../data/rooms';
+import { useTranslations } from '../i18n/utils';
+import { getAvailability, daysBetween } from '../services/channex';
+
+export const prerender = false;
+
+const lang = (Astro.currentLocale || 'en') as 'en' | 'es';
+const t = useTranslations(lang);
+
+// Get query parameters
+const url = new URL(Astro.url);
+let checkIn = url.searchParams.get('checkin') || url.searchParams.get('checkIn') || '';
+let checkOut = url.searchParams.get('checkout') || url.searchParams.get('checkOut') || '';
+let roomType = url.searchParams.get('roomType') || url.searchParams.get('room_type') || '';
+let guestsCount = Number(url.searchParams.get('guests')) || 2;
+
+// Set sensible defaults if dates are missing
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
+const dayAfter = new Date(today);
+dayAfter.setDate(today.getDate() + 2);
+
+const formatDateString = (d: Date) => {
+  return d.toISOString().split('T')[0];
+};
+
+if (!checkIn) checkIn = formatDateString(tomorrow);
+if (!checkOut) checkOut = formatDateString(dayAfter);
+
+// Fetch availability for initial render
+const availableRooms = await getAvailability(checkIn, checkOut);
+const selectedRoom = rooms.find(r => r.slug === roomType) || rooms[0];
+const initialNights = daysBetween(checkIn, checkOut);
+const initialTotalPrice = selectedRoom.pricePerNight * initialNights;
+
+// Translate bedding info dynamically
+const getTranslatedBeds = (bedsStr: string) => {
+  return bedsStr
+    .replace('single beds', lang === 'es' ? 'camas individuales' : 'single beds')
+    .replace('single bed', lang === 'es' ? 'cama individual' : 'single bed')
+    .replace('king bed', lang === 'es' ? 'cama king' : 'king bed')
+    .replace('king +', lang === 'es' ? 'king +' : 'king +');
+};
+---
+
+<Layout title={`${lang === 'es' ? 'Completar Reserva' : 'Complete Your Booking'} — USGAR Hotels`} lang={lang}>
+  <main class="py-24 px-4 max-w-7xl mx-auto flex-1 animate-fade-in">
+    <!-- Header -->
+    <div class="mb-12 text-center max-w-xl mx-auto">
+      <span class="text-xs font-semibold text-primary uppercase tracking-widest">
+        {lang === 'es' ? 'Paso Final' : 'Final Step'}
+      </span>
+      <h1 class="font-display text-4xl md:text-5xl mt-2 mb-4">
+        {lang === 'es' ? 'Completa tu Reserva' : 'Book Your Stay'}
+      </h1>
+      <p class="text-[#57534E] dark:text-[#A8A29E] text-sm">
+        {lang === 'es' 
+          ? 'Por favor, introduce los datos del huésped principal y confirma las fechas para proceder al pago seguro.' 
+          : 'Please enter the primary guest details and confirm your dates to proceed to secure checkout.'}
+      </p>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="hidden max-w-4xl mx-auto mb-8 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-3">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span id="error-message"></span>
+    </div>
+
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Dates & Guest Form (8 cols) -->
+      <div class="lg:col-span-7 space-y-8">
+        
+        <!-- Section 1: Dates & Room adjustment -->
+        <div class="bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+          <h2 class="font-display text-2xl mb-4 flex items-center gap-3 border-b border-black/5 dark:border-white/5 pb-3">
+            <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">1</span>
+            {lang === 'es' ? 'Detalles de la Estadía' : 'Stay Details'}
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Check-in -->
+            <div>
+              <label for="checkin" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                {t('booking.checkin')}
+              </label>
+              <input
+                type="date"
+                id="checkin"
+                name="checkin"
+                value={checkIn}
+                min={formatDateString(today)}
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              />
+            </div>
+
+            <!-- Check-out -->
+            <div>
+              <label for="checkout" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                {t('booking.checkout')}
+              </label>
+              <input
+                type="date"
+                id="checkout"
+                name="checkout"
+                value={checkOut}
+                min={checkIn}
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              />
+            </div>
+
+            <!-- Room Type -->
+            <div>
+              <label for="room-type" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                {t('booking.roomType')}
+              </label>
+              <select
+                id="room-type"
+                name="roomType"
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all appearance-none"
+              >
+                {rooms.map(r => (
+                  <option value={r.slug} selected={r.slug === roomType}>{r.name[lang]}</option>
+                ))}
+              </select>
+            </div>
+
+            <!-- Guests -->
+            <div>
+              <label for="guests" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                {t('booking.guests')}
+              </label>
+              <select
+                id="guests"
+                name="guests"
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all appearance-none"
+              >
+                <option value="1" selected={guestsCount === 1}>1 {t('booking.guest')}</option>
+                <option value="2" selected={guestsCount === 2}>2 {t('booking.guests_plural')}</option>
+                <option value="3" selected={guestsCount === 3}>3 {t('booking.guests_plural')}</option>
+                <option value="4" selected={guestsCount === 4}>4 {t('booking.guests_plural')}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Guest Details Form -->
+        <form id="checkout-form" class="bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+          <h2 class="font-display text-2xl mb-4 flex items-center gap-3 border-b border-black/5 dark:border-white/5 pb-3">
+            <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">2</span>
+            {lang === 'es' ? 'Datos del Huésped Principal' : 'Primary Guest Details'}
+          </h2>
+
+          <div class="space-y-4">
+            <!-- Full Name -->
+            <div>
+              <label for="guest-name" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                {lang === 'es' ? 'Nombre Completo' : 'Full Name'} *
+              </label>
+              <input
+                type="text"
+                id="guest-name"
+                name="guestName"
+                required
+                placeholder="e.g. John Doe"
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-stone-400"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Email -->
+              <div>
+                <label for="guest-email" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  id="guest-email"
+                  name="guestEmail"
+                  required
+                  placeholder="e.g. john@example.com"
+                  class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-stone-400"
+                />
+              </div>
+
+              <!-- Phone -->
+              <div>
+                <label for="guest-phone" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                  {lang === 'es' ? 'Teléfono / WhatsApp' : 'Phone / WhatsApp'} *
+                </label>
+                <input
+                  type="tel"
+                  id="guest-phone"
+                  name="guestPhone"
+                  required
+                  placeholder="e.g. +51 987 654 321"
+                  class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-stone-400"
+                />
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Booking Summary Card (5 cols) -->
+      <div class="lg:col-span-5 lg:sticky lg:top-24 bg-white dark:bg-[#1C1917] p-8 rounded-2xl border border-black/5 dark:border-white/5 shadow-lg space-y-6">
+        <h2 class="font-display text-2xl border-b border-black/5 dark:border-white/5 pb-3">
+          {lang === 'es' ? 'Resumen del Viaje' : 'Trip Summary'}
+        </h2>
+
+        <!-- Selected Room Info Box -->
+        <div class="space-y-4">
+          <div>
+            <h3 id="summary-room-name" class="font-display text-xl text-primary font-bold">{selectedRoom.name[lang]}</h3>
+            <p id="summary-room-beds" class="text-xs text-[#57534E] dark:text-[#A8A29E] mt-1">🛏️ {getTranslatedBeds(selectedRoom.beds)}</p>
+          </div>
+
+          <div class="border-t border-b border-black/5 dark:border-white/5 py-4 space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-[#57534E] dark:text-[#A8A29E]">{lang === 'es' ? 'Fecha de Entrada' : 'Check-in Date'}</span>
+              <span id="summary-checkin" class="font-semibold">{checkIn}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-[#57534E] dark:text-[#A8A29E]">{lang === 'es' ? 'Fecha de Salida' : 'Check-out Date'}</span>
+              <span id="summary-checkout" class="font-semibold">{checkOut}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-[#57534E] dark:text-[#A8A29E]">{lang === 'es' ? 'Duración' : 'Duration'}</span>
+              <span id="summary-nights" class="font-semibold">{initialNights} {lang === 'es' ? 'noches' : 'nights'}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-[#57534E] dark:text-[#A8A29E]">{lang === 'es' ? 'Huéspedes' : 'Guests'}</span>
+              <span id="summary-guests" class="font-semibold">{guestsCount} {guestsCount === 1 ? t('booking.guest') : t('booking.guests_plural')}</span>
+            </div>
+          </div>
+
+          <!-- Total pricing -->
+          <div class="flex items-center justify-between py-2">
+            <div>
+              <span class="text-sm font-semibold">{lang === 'es' ? 'Precio Total' : 'Total Price'}</span>
+              <p class="text-[11px] text-[#57534E] dark:text-[#A8A29E] mt-0.5">
+                {lang === 'es' ? 'Impuestos y desayuno incluidos' : 'Taxes & breakfast included'}
+              </p>
+            </div>
+            <div class="text-right">
+              <div class="flex items-baseline gap-1 justify-end">
+                <span class="text-3xl font-bold font-display text-primary">$</span>
+                <span id="summary-total-price" class="text-3xl font-bold font-display text-primary">{initialTotalPrice}</span>
+              </div>
+              <span class="text-xs text-[#57534E] dark:text-[#A8A29E]">
+                $<span id="summary-price-per-night">{selectedRoom.pricePerNight}</span> {t('rooms.perNight')}
+              </span>
+            </div>
+          </div>
+
+          <!-- Cancellation policy / Highlights -->
+          <div class="p-4 rounded-xl bg-[#2DB5A0]/10 dark:bg-[#2DB5A0]/15 border border-[#2DB5A0]/15 space-y-2">
+            <h4 class="font-semibold text-xs text-[#1F9484] dark:text-[#4ECBB8] flex items-center gap-1.5 uppercase tracking-wider">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              {lang === 'es' ? 'Reserva Garantizada' : 'Guaranteed Booking'}
+            </h4>
+            <p class="text-xs text-[#1C1917]/80 dark:text-[#FAFAF9]/80 leading-relaxed">
+              {lang === 'es'
+                ? 'Cancelación gratuita hasta 48 horas antes de tu llegada. Desayuno buffet andino incluido.'
+                : 'Free cancellation up to 48 hours prior to check-in. Andean buffet breakfast included.'}
+            </p>
+          </div>
+
+          <!-- Submit CTA -->
+          <button
+            type="button"
+            id="btn-pay"
+            class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-4 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 text-lg cursor-pointer flex items-center justify-center gap-3"
+          >
+            <span id="btn-text">{lang === 'es' ? 'Confirmar y Pagar con Mercado Pago' : 'Confirm & Pay with Mercado Pago'}</span>
+            <!-- Spinner -->
+            <svg id="btn-spinner" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</Layout>
+
+<script>
+  // Expose rooms to client for local price updates
+  const ROOMS_DATA = [
+    { id: 'doble-superior', slug: 'doble-superior', name: { en: 'Double Superior Room', es: 'Habitación Doble Superior' }, pricePerNight: 45, beds: '2 single beds' },
+    { id: 'matrimonial', slug: 'matrimonial', name: { en: 'Matrimonial Room', es: 'Habitación Matrimonial' }, pricePerNight: 50, beds: '1 king bed' },
+    { id: 'familiar-superior', slug: 'familiar-superior', name: { en: 'Family Superior Room', es: 'Habitación Familiar Superior' }, pricePerNight: 75, beds: '1 king + 2 single beds' },
+    { id: 'quadruple-superior', slug: 'quadruple-superior', name: { en: 'Quadruple Superior Room', es: 'Habitación Cuádruple Superior' }, pricePerNight: 65, beds: '4 single beds' },
+    { id: 'triple-standar', slug: 'triple-standar', name: { en: 'Triple Standard Room', es: 'Habitación Triple Estándar' }, pricePerNight: 55, beds: '3 single beds' },
+  ];
+
+  function initCheckoutPage() {
+    const checkinInput = document.getElementById('checkin') as HTMLInputElement;
+    const checkoutInput = document.getElementById('checkout') as HTMLInputElement;
+    const roomSelect = document.getElementById('room-type') as HTMLSelectElement;
+    const guestsSelect = document.getElementById('guests') as HTMLSelectElement;
+
+    const summaryRoomName = document.getElementById('summary-room-name');
+    const summaryRoomBeds = document.getElementById('summary-room-beds');
+    const summaryCheckin = document.getElementById('summary-checkin');
+    const summaryCheckout = document.getElementById('summary-checkout');
+    const summaryNights = document.getElementById('summary-nights');
+    const summaryGuests = document.getElementById('summary-guests');
+    const summaryTotalPrice = document.getElementById('summary-total-price');
+    const summaryPricePerNight = document.getElementById('summary-price-per-night');
+
+    const form = document.getElementById('checkout-form') as HTMLFormElement;
+    const btnPay = document.getElementById('btn-pay') as HTMLButtonElement;
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    
+    const errorBanner = document.getElementById('error-banner');
+    const errorMessage = document.getElementById('error-message');
+
+    const lang = document.documentElement.lang || 'en';
+
+    function daysBetween(date1: string, date2: string): number {
+      const d1 = new Date(date1);
+      const d2 = new Date(date2);
+      const diffTime = Math.abs(d2.getTime() - d1.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return isNaN(diffDays) ? 1 : diffDays;
+    }
+
+    function translateBeds(bedsStr: string) {
+      return bedsStr
+        .replace('single beds', lang === 'es' ? 'camas individuales' : 'single beds')
+        .replace('single bed', lang === 'es' ? 'cama individual' : 'single bed')
+        .replace('king bed', lang === 'es' ? 'cama king' : 'king bed')
+        .replace('king +', lang === 'es' ? 'king +' : 'king +');
+    }
+
+    // Dynamic price recalculation
+    function updatePricing() {
+      const checkInDate = checkinInput?.value;
+      const checkOutDate = checkoutInput?.value;
+      const selectedSlug = roomSelect?.value;
+      const guestsCount = guestsSelect?.value;
+
+      if (!checkInDate || !checkOutDate || !selectedSlug) return;
+
+      // Adjust min date for checkout
+      if (checkoutInput) {
+        checkoutInput.min = checkInDate;
+      }
+
+      const room = ROOMS_DATA.find(r => r.slug === selectedSlug);
+      if (!room) return;
+
+      const nights = daysBetween(checkInDate, checkOutDate);
+      const totalPrice = room.pricePerNight * nights;
+
+      // Update summary fields
+      if (summaryRoomName) summaryRoomName.textContent = room.name[lang as 'en' | 'es'];
+      if (summaryRoomBeds) summaryRoomBeds.textContent = `🛏. ${translateBeds(room.beds)}`;
+      if (summaryCheckin) summaryCheckin.textContent = checkInDate;
+      if (summaryCheckout) summaryCheckout.textContent = checkOutDate;
+      if (summaryNights) summaryNights.textContent = `${nights} ${lang === 'es' ? 'noches' : 'nights'}`;
+      if (summaryGuests) {
+        const guestText = guestsCount === '1' 
+          ? (lang === 'es' ? '1 huésped' : '1 guest') 
+          : `${guestsCount} ${lang === 'es' ? 'huéspedes' : 'guests'}`;
+        summaryGuests.textContent = guestText;
+      }
+      if (summaryTotalPrice) summaryTotalPrice.textContent = totalPrice.toString();
+      if (summaryPricePerNight) summaryPricePerNight.textContent = room.pricePerNight.toString();
+    }
+
+    // Event listeners
+    checkinInput?.addEventListener('change', () => {
+      // Validate dates
+      if (checkoutInput && checkinInput.value >= checkoutInput.value) {
+        const nextDay = new Date(checkinInput.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        checkoutInput.value = nextDay.toISOString().split('T')[0];
+      }
+      updatePricing();
+    });
+    checkoutInput?.addEventListener('change', updatePricing);
+    roomSelect?.addEventListener('change', updatePricing);
+    guestsSelect?.addEventListener('change', updatePricing);
+
+    // Initial pricing sync
+    updatePricing();
+
+    // Form Submission
+    btnPay?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      // Hide error banner
+      errorBanner?.classList.add('hidden');
+
+      // Manual field validations
+      const guestNameInput = document.getElementById('guest-name') as HTMLInputElement;
+      const guestEmailInput = document.getElementById('guest-email') as HTMLInputElement;
+      const guestPhoneInput = document.getElementById('guest-phone') as HTMLInputElement;
+
+      if (!guestNameInput?.value || !guestEmailInput?.value || !guestPhoneInput?.value) {
+        showError(lang === 'es' ? 'Por favor complete todos los campos obligatorios.' : 'Please fill out all required fields.');
+        return;
+      }
+
+      if (!guestEmailInput.validity.valid) {
+        showError(lang === 'es' ? 'Por favor ingrese un email válido.' : 'Please enter a valid email address.');
+        return;
+      }
+
+      // Show spinner and disable button
+      btnSpinner?.classList.remove('hidden');
+      btnPay.disabled = true;
+      if (btnText) btnText.textContent = lang === 'es' ? 'Procesando...' : 'Processing...';
+
+      try {
+        const checkIn = checkinInput.value;
+        const checkOut = checkoutInput.value;
+        const roomId = roomSelect.value;
+        const guests = Number(guestsSelect.value);
+        const guestName = guestNameInput.value;
+        const guestEmail = guestEmailInput.value;
+        const guestPhone = guestPhoneInput.value;
+
+        // Step 1: Create local booking in pending state
+        const bookingRes = await fetch('/api/channex/booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId,
+            checkIn,
+            checkOut,
+            guests,
+            guestName,
+            guestEmail,
+            guestPhone,
+          }),
+        });
+
+        if (!bookingRes.ok) {
+          const errData = await bookingRes.json();
+          throw new Error(errData.error || 'Failed to create booking');
+        }
+
+        const booking = await bookingRes.json();
+        const bookingId = booking.id;
+
+        // Step 2: Create Mercado Pago Preference
+        const prefRes = await fetch('/api/create-preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingId,
+            roomId,
+            checkIn,
+            checkOut,
+            guests,
+            guestName,
+            guestEmail,
+            guestPhone,
+          }),
+        });
+
+        if (!prefRes.ok) {
+          const errData = await prefRes.json();
+          throw new Error(errData.error || 'Failed to create payment preference');
+        }
+
+        const preference = await prefRes.json();
+        
+        // Step 3: Redirect to payment page (either mock or real Mercado Pago)
+        if (preference.init_point) {
+          // Detect if preference runs in mock mode, add language context if it is local
+          let redirectUrl = preference.init_point;
+          if (redirectUrl.startsWith('/') && lang === 'es') {
+            redirectUrl = `/es${redirectUrl}`;
+          }
+          window.location.href = redirectUrl;
+        } else {
+          throw new Error('No checkout URL received');
+        }
+      } catch (err: any) {
+        console.error(err);
+        showError(err.message || (lang === 'es' ? 'Ocurrió un error inesperado.' : 'An unexpected error occurred.'));
+        
+        // Reset button state
+        btnSpinner?.classList.add('hidden');
+        btnPay.disabled = false;
+        if (btnText) btnText.textContent = lang === 'es' ? 'Confirmar y Pagar con Mercado Pago' : 'Confirm & Pay with Mercado Pago';
+      }
+    });
+
+    function showError(msg: string) {
+      if (errorBanner && errorMessage) {
+        errorMessage.textContent = msg;
+        errorBanner.classList.remove('hidden');
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }
+
+  // Load on initial render and on Astro swaps
+  initCheckoutPage();
+  document.addEventListener('astro:after-swap', initCheckoutPage);
+</script>

@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "rooms": "Habitaciones",
+    "services": "Servicios",
+    "explore": "Explora Cusco",
+    "contact": "Contacto",
+    "bookNow": "Reservar",
+    "language": "Español"
+  },
+  "hero": {
+    "title": "USGAR Hotels",
+    "subtitle": "San Pedro, Cusco — Tu puerta a los Andes",
+    "cta": "Reserva Tu Estadía",
+    "ctaSecondary": "Explorar Habitaciones"
+  },
+  "booking": {
+    "checkin": "Llegada",
+    "checkout": "Salida",
+    "guests": "Huéspedes",
+    "roomType": "Tipo de Habitación",
+    "anyRoom": "Cualquier Habitación",
+    "search": "Buscar Disponibilidad",
+    "guest": "Huésped",
+    "guests_plural": "Huéspedes"
+  },
+  "rooms": {
+    "sectionLabel": "Alojamiento",
+    "title": "Nuestras Habitaciones",
+    "description": "Cada habitación está diseñada con murales andinos pintados a mano, iluminación cálida y textiles artesanales que celebran la herencia cultural de Cusco.",
+    "from": "Desde",
+    "perNight": "/noche",
+    "upTo": "Hasta",
+    "videoTour": "Video Tour",
+    "viewAll": "Ver todas las habitaciones"
+  },
+  "services": {
+    "sectionLabel": "Nuestros Servicios",
+    "title": "Todo Lo Que Necesitas",
+    "description": "Desde el momento en que llegas, cuidamos cada detalle para que tu estadía en Cusco sea inolvidable."
+  },
+  "reviews": {
+    "sectionLabel": "Reseñas de Huéspedes",
+    "title": "Lo Que Dicen Nuestros Huéspedes",
+    "description": "Escucha a los viajeros que han experimentado USGAR Hotels"
+  },
+  "explore": {
+    "sectionLabel": "Cercano",
+    "title": "Explora Cusco",
+    "description": "Descubre las maravillas que te esperan justo al salir",
+    "viewAll": "Ver todas las atracciones"
+  },
+  "map": {
+    "sectionLabel": "Ubicación",
+    "title": "Encuéntranos en Cusco",
+    "description": "Ubicado en el corazón de San Pedro, a pasos del mercado histórico y a poca distancia de la Plaza de Armas."
+  },
+  "faq": {
+    "sectionLabel": "FAQ",
+    "title": "Preguntas Frecuentes",
+    "description": "Todo lo que necesitas saber sobre tu estadía en Cusco: soroche (mal de altura), check-in, traslados y más."
+  },
+  "footer": {
+    "contact": "Contacto",
+    "quickLinks": "Enlaces Rápidos",
+    "followUs": "Síguenos",
+    "findUs": "Encuéntranos en tu plataforma de viajes favorita",
+    "rights": "Todos los derechos reservados.",
+    "madeWith": "Hecho con ❤️ en Cusco, Perú"
+  },
+  "whatsapp": {
+    "tooltip": "¿Necesitas ayuda? ¡Escríbenos!",
+    "message": "¡Hola! Me gustaría reservar una habitación en USGAR Hotels."
+  },
+  "theme": {
+    "toggleDark": "Cambiar modo oscuro"
+  }
+}

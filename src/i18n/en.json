@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "rooms": "Rooms",
+    "services": "Services",
+    "explore": "Explore Cusco",
+    "contact": "Contact",
+    "bookNow": "Book Now",
+    "language": "English"
+  },
+  "hero": {
+    "title": "USGAR Hotels",
+    "subtitle": "San Pedro, Cusco — Your gateway to the Andes",
+    "cta": "Book Your Stay",
+    "ctaSecondary": "Explore Rooms"
+  },
+  "booking": {
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "guests": "Guests",
+    "roomType": "Room Type",
+    "anyRoom": "Any Room",
+    "search": "Check Availability",
+    "guest": "Guest",
+    "guests_plural": "Guests"
+  },
+  "rooms": {
+    "sectionLabel": "Accommodations",
+    "title": "Our Rooms",
+    "description": "Each room is uniquely designed with hand-painted Andean murals, warm lighting, and artisan textiles that celebrate Cusco's cultural heritage.",
+    "from": "From",
+    "perNight": "/night",
+    "upTo": "Up to",
+    "videoTour": "Video Tour",
+    "viewAll": "View all rooms"
+  },
+  "services": {
+    "sectionLabel": "Our Services",
+    "title": "Everything You Need",
+    "description": "From the moment you arrive, we take care of every detail to make your stay in Cusco unforgettable."
+  },
+  "reviews": {
+    "sectionLabel": "Guest Reviews",
+    "title": "What Our Guests Say",
+    "description": "Hear from travelers who have experienced USGAR Hotels"
+  },
+  "explore": {
+    "sectionLabel": "Nearby",
+    "title": "Explore Cusco",
+    "description": "Discover the wonders that await just outside your door",
+    "viewAll": "View all attractions"
+  },
+  "map": {
+    "sectionLabel": "Location",
+    "title": "Find Us in Cusco",
+    "description": "Located in the heart of San Pedro, steps from the historic market and a short walk to Plaza de Armas."
+  },
+  "faq": {
+    "sectionLabel": "FAQ",
+    "title": "Frequently Asked Questions",
+    "description": "Everything you need to know about your stay in Cusco: altitude sickness, check-in, transport, and more."
+  },
+  "footer": {
+    "contact": "Contact",
+    "quickLinks": "Quick Links",
+    "followUs": "Follow Us",
+    "findUs": "Find us on your favorite travel platform",
+    "rights": "All rights reserved.",
+    "madeWith": "Made with ❤️ in Cusco, Peru"
+  },
+  "whatsapp": {
+    "tooltip": "Need help? Chat with us!",
+    "message": "Hello! I would like to book a room at USGAR Hotels."
+  },
+  "theme": {
+    "toggleDark": "Toggle dark mode"
+  }
+}

@@ -1,0 +1,133 @@
+---
+import { useTranslations } from '../i18n/utils';
+
+const lang = (Astro.currentLocale || 'en') as 'en' | 'es';
+const t = useTranslations(lang);
+---
+
+<section id="map-section" class="py-20 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-10 animate-on-scroll">
+      <span class="text-sm font-semibold text-primary uppercase tracking-widest">{t('map.sectionLabel')}</span>
+      <h2 class="font-display text-4xl md:text-5xl mt-3 mb-4">
+        {t('map.title')}
+      </h2>
+      <p class="text-lg text-[#57534E] dark:text-[#A8A29E] max-w-2xl mx-auto">
+        {t('map.description')}
+      </p>
+    </div>
+
+    <!-- Map Container -->
+    <div
+      id="hotel-map"
+      class="w-full h-80 md:h-96 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-[#1C1917]/5 dark:bg-white/5 animate-on-scroll relative z-10"
+    >
+      <div class="w-full h-full flex items-center justify-center text-[#57534E] dark:text-[#A8A29E]">
+        <div class="text-center">
+          <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <p class="text-sm">{lang === 'es' ? 'Cargando mapa interactivo...' : 'Interactive map loading...'}</p>
+          <p class="text-xs mt-1 opacity-60">San Pedro, Cusco, Peru</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+  import logoIsotipo from '../assets/logos/Logo usgar isotipo.png';
+
+  function initMap() {
+    const container = document.getElementById('hotel-map');
+    if (!container) return;
+
+    // Check if map is already initialized on this element
+    // @ts-ignore
+    if (container._leaflet_id) return;
+
+    // Clear contents
+    container.innerHTML = '';
+
+    const lat = -13.5226;
+    const lng = -71.9828;
+
+    // Initialize map
+    const map = L.map('hotel-map', {
+      scrollWheelZoom: false // Premium feel: don't hijack scroll
+    }).setView([lat, lng], 17);
+
+    // Differentiate tile styles based on theme
+    const getTileUrl = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      return isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' // CartoDB Dark Matter
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'; // CartoDB Voyager
+    };
+
+    const tileLayer = L.tileLayer(getTileUrl(), {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Custom marker icon pointing to the USGAR isotipo
+    const iconUrl = typeof logoIsotipo === 'string' ? logoIsotipo : logoIsotipo.src;
+    const customIcon = L.icon({
+      iconUrl: iconUrl,
+      iconSize: [42, 42],
+      iconAnchor: [21, 42],
+      popupAnchor: [0, -42]
+    });
+
+    const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+    
+    // Localize popup text
+    const isEs = document.documentElement.lang === 'es';
+    const popupContent = isEs
+      ? '<b>USGAR Hotels</b><br>San Pedro, Cusco, Perú<br><a href="https://maps.openrouteservice.org" target="_blank" class="text-primary hover:underline text-xs">Cómo llegar</a>'
+      : '<b>USGAR Hotels</b><br>San Pedro, Cusco, Peru<br><a href="https://maps.openrouteservice.org" target="_blank" class="text-primary hover:underline text-xs">Directions</a>';
+      
+    marker.bindPopup(popupContent).openPopup();
+
+    // Listen to theme changes to dynamically update map tiles
+    const observer = new MutationObserver(() => {
+      tileLayer.setUrl(getTileUrl());
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    // Handle clean-up when View Transitions swap pages
+    document.addEventListener('astro:before-swap', () => {
+      observer.disconnect();
+      map.remove();
+    }, { once: true });
+  }
+
+  function setupMapObserver() {
+    const container = document.getElementById('hotel-map');
+    if (!container) return;
+
+    // Check if map is already initialized on this element
+    // @ts-ignore
+    if (container._leaflet_id) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          initMap();
+          observer.disconnect(); // Load only once
+        }
+      });
+    }, { rootMargin: '200px' });
+
+    observer.observe(container);
+  }
+
+  // Init observer on load
+  setupMapObserver();
+  
+  // Re-init observer after View Transitions swap pages
+  document.addEventListener('astro:after-swap', setupMapObserver);
+</script>

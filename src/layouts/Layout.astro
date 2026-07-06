@@ -1,0 +1,119 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppButton from '../components/WhatsAppButton.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: string;
+  ogImage?: string;
+  schema?: Record<string, any> | Record<string, any>[];
+}
+
+const {
+  title,
+  description = 'USGAR Hotels — Boutique hotel in San Pedro, Cusco. Your gateway to Machu Picchu and the Sacred Valley.',
+  lang = 'en',
+  ogImage = '/og-image.jpg',
+  schema
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://usgarhotels.com');
+---
+
+<!doctype html>
+<html lang={lang} class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- SEO -->
+    <title>{title}</title>
+    <link rel="canonical" href={canonicalURL.href} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={lang === 'es' ? 'es_PE' : 'en_US'} />
+
+    <!-- Hreflang -->
+    <link rel="alternate" hreflang="en" href={canonicalURL.href} />
+    <link rel="alternate" hreflang="es" href={canonicalURL.href} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Google Fonts Preconnect (performance) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Schema.org JSON-LD -->
+    {schema && (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    )}
+
+    <!-- View Transitions -->
+    <ClientRouter />
+  </head>
+  <body class="bg-[#FAFAF9] dark:bg-[#0C0A09] text-[#1C1917] dark:text-[#FAFAF9] transition-colors duration-300 min-h-screen flex flex-col">
+    <Navbar />
+
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <Footer />
+    <WhatsAppButton />
+
+    <!-- Dark mode: detect system preference + persist choice -->
+    <script is:inline>
+      (function() {
+        const stored = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = stored || (prefersDark ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      })();
+    </script>
+
+    <!-- Re-apply theme after View Transition page swap -->
+    <script is:inline>
+      if (!window._themeSwapRegistered) {
+        window._themeSwapRegistered = true;
+        document.addEventListener('astro:after-swap', () => {
+          const stored = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = stored || (prefersDark ? 'dark' : 'light');
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+        });
+      }
+    </script>
+
+    <!-- Scroll animations with IntersectionObserver -->
+    <script>
+      function initScrollAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+      }
+
+      // Run on initial load
+      initScrollAnimations();
+
+      // Re-run after View Transition navigation
+      document.addEventListener('astro:after-swap', initScrollAnimations);
+    </script>
+  </body>
+</html>

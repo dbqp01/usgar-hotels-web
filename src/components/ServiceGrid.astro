@@ -1,0 +1,43 @@
+---
+import { services } from '../data/services';
+import { useTranslations } from '../i18n/utils';
+import SVGIcons from './icons/SVGIcons.astro';
+
+const lang = (Astro.currentLocale || 'en') as 'en' | 'es';
+const t = useTranslations(lang);
+---
+
+<section id="services" class="py-20 px-4">
+  <div class="max-w-7xl mx-auto">
+    <!-- Section Header -->
+    <div class="text-center mb-14 animate-on-scroll">
+      <span class="text-sm font-semibold text-primary uppercase tracking-widest">{t('services.sectionLabel')}</span>
+      <h2 class="font-display text-4xl md:text-5xl mt-3 mb-4">
+        {t('services.title')}
+      </h2>
+      <p class="text-lg text-[#57534E] dark:text-[#A8A29E] max-w-2xl mx-auto">
+        {t('services.description')}
+      </p>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      {services.map((service, i) => (
+        <div
+          class="animate-on-scroll stagger-child group p-6 rounded-2xl bg-white dark:bg-[#1C1917] border border-black/5 dark:border-white/5 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 text-center"
+          style={`transition-delay: ${i * 0.08}s`}
+        >
+          <div class="flex justify-center mb-4">
+            <SVGIcons name={service.id as any} class="w-8 h-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+          </div>
+          <h3 class="font-semibold text-sm mb-1 group-hover:text-primary transition-colors">
+            {service.name[lang]}
+          </h3>
+          <p class="text-xs text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
+            {service.description[lang]}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
