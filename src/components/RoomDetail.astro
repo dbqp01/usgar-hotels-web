@@ -563,6 +563,9 @@ const roomSchema = {
     // LAZY VIDEO PLAYER INTERACTION
     // ==========================================
     const video = document.getElementById('room-tour-video') as HTMLVideoElement | null;
+    if (!video || video.dataset.listenerAttached === 'true') return;
+    video.dataset.listenerAttached = 'true';
+
     const overlay = document.getElementById('video-overlay');
     const controls = document.getElementById('video-controls');
     const playBtn = document.getElementById('video-play-btn');
@@ -572,8 +575,6 @@ const roomSchema = {
     const mutedIcon = document.getElementById('video-muted-icon');
     const unmutedIcon = document.getElementById('video-unmuted-icon');
     const audioLabel = document.getElementById('audio-btn-label');
-
-    if (!video) return;
 
     function playVideo() {
       if (!video) return;
@@ -592,7 +593,7 @@ const roomSchema = {
     function togglePlay() {
       if (!video) return;
       if (video.paused) {
-        video.play();
+        video.play().catch(e => {});
         playIcon?.classList.add('hidden');
         pauseIcon?.classList.remove('hidden');
       } else {
@@ -620,29 +621,11 @@ const roomSchema = {
       }
     }
 
-    // Attach listeners with resets to avoid duplications
-    if (overlay) {
-      const newOverlay = overlay.cloneNode(true);
-      overlay.parentNode?.replaceChild(newOverlay, overlay);
-      newOverlay.addEventListener('click', playVideo);
-    }
-    
-    if (playBtn) {
-      const newPlayBtn = playBtn.cloneNode(true);
-      playBtn.parentNode?.replaceChild(newPlayBtn, playBtn);
-      newPlayBtn.addEventListener('click', togglePlay);
-    }
-    
-    if (audioBtn) {
-      const newAudioBtn = audioBtn.cloneNode(true);
-      audioBtn.parentNode?.replaceChild(newAudioBtn, audioBtn);
-      newAudioBtn.addEventListener('click', toggleAudio);
-    }
-
-    // Keep play/pause in sync with video state clicks directly on the element
-    const newVideo = video.cloneNode(true) as HTMLVideoElement;
-    video.parentNode?.replaceChild(newVideo, video);
-    newVideo.addEventListener('click', togglePlay);
+    // Attach listeners directly without cloning to avoid stale element references
+    overlay?.addEventListener('click', playVideo);
+    playBtn?.addEventListener('click', togglePlay);
+    audioBtn?.addEventListener('click', toggleAudio);
+    video.addEventListener('click', togglePlay);
 
     // Save cleanup references to window to avoid double register on View Transitions
     (window as any)._roomDetailCleanup = () => {

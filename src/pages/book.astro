@@ -190,7 +190,11 @@ const getTranslatedBeds = (bedsStr: string) => {
                           class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
                         />
                       ) : (
-                        <div class="w-full h-full flex items-center justify-center text-2xl">🏨</div>
+                        <div class="w-full h-full flex items-center justify-center">
+                          <svg class="w-8 h-8 text-[#A8A29E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                          </svg>
+                        </div>
                       )}
                     </div>
 
@@ -208,9 +212,19 @@ const getTranslatedBeds = (bedsStr: string) => {
                         {r.description[lang]}
                       </p>
                       <div class="flex items-center justify-center sm:justify-start gap-3 mt-3 text-[10px] text-[#A8A29E] font-semibold uppercase tracking-wider">
-                        <span>👥 Max {r.maxGuests} {r.maxGuests === 1 ? t('booking.guest') : t('booking.guests_plural')}</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5 text-[#A8A29E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0110.089 21c-2.243 0-4.352-.64-6.136-1.75M15 12a3 3 0 11-6 0 3 3 0 016 0zm-9 0a3 3 0 11-6 0 3 3 0 016 0zm12.75 3.25a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Max {r.maxGuests} {r.maxGuests === 1 ? t('booking.guest') : t('booking.guests_plural')}
+                        </span>
                         <span>•</span>
-                        <span>🛏️ {getTranslatedBeds(r.beds)}</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5 text-[#A8A29E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12v6m0 0v-2.25a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25V18m-19.5 0h19.5M2.25 12h19.5m-19.5 0V9a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 9v3m-18-3.75h14.25M6.75 12v2.25M17.25 12v2.25" />
+                          </svg>
+                          {getTranslatedBeds(r.beds)}
+                        </span>
                       </div>
                     </div>
 
@@ -322,7 +336,10 @@ const getTranslatedBeds = (bedsStr: string) => {
                 <!-- Live calculation result banner -->
                 <div id="transfer-calculation" class="hidden p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-1.5 max-w-md">
                   <h4 class="font-semibold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
-                    ⏱️ {lang === 'es' ? 'Cálculo de Llegada Estimada' : 'Estimated Arrival Calculation'}
+                    <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {lang === 'es' ? 'Cálculo de Llegada Estimada' : 'Estimated Arrival Calculation'}
                   </h4>
                   <p class="text-xs text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
                     {lang === 'es' 
@@ -358,7 +375,12 @@ const getTranslatedBeds = (bedsStr: string) => {
         <div class="space-y-4">
           <div>
             <h3 id="summary-room-name" class="font-display text-xl text-primary font-bold">{selectedRoom.name[lang]}</h3>
-            <p id="summary-room-beds" class="text-xs text-[#57534E] dark:text-[#A8A29E] mt-1">🛏️ {getTranslatedBeds(selectedRoom.beds)}</p>
+            <p id="summary-room-beds" class="text-xs text-[#57534E] dark:text-[#A8A29E] mt-1 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-[#A8A29E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12v6m0 0v-2.25a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25V18m-19.5 0h19.5M2.25 12h19.5m-19.5 0V9a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 9v3m-18-3.75h14.25M6.75 12v2.25M17.25 12v2.25" />
+              </svg>
+              <span id="summary-room-beds-text">{getTranslatedBeds(selectedRoom.beds)}</span>
+            </p>
           </div>
 
           <div class="border-t border-b border-black/5 dark:border-white/5 py-4 space-y-3">
@@ -414,6 +436,26 @@ const getTranslatedBeds = (bedsStr: string) => {
             </p>
           </div>
 
+          <!-- Room Video Preview Box -->
+          <div id="summary-video-container" class="p-4 rounded-xl border border-black/10 dark:border-white/10 space-y-2">
+            <h4 class="font-semibold text-xs text-[#57534E] dark:text-[#A8A29E] uppercase tracking-wider flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-[#A8A29E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              {lang === 'es' ? 'Video Tour de la Habitación' : 'Room Video Tour'}
+            </h4>
+            <div class="relative rounded-lg overflow-hidden aspect-video bg-black">
+              <video
+                id="summary-room-video"
+                src={`/videos/rooms/${selectedRoom.slug}.mp4`}
+                controls
+                muted
+                playsinline
+                class="w-full h-full object-cover"
+              ></video>
+            </div>
+          </div>
+
           <!-- Submit CTA -->
           <button
             type="button"
@@ -451,13 +493,14 @@ const getTranslatedBeds = (bedsStr: string) => {
     const guestsSelect = document.getElementById('guests') as HTMLSelectElement;
 
     const summaryRoomName = document.getElementById('summary-room-name');
-    const summaryRoomBeds = document.getElementById('summary-room-beds');
+    const summaryRoomBedsText = document.getElementById('summary-room-beds-text');
     const summaryCheckin = document.getElementById('summary-checkin');
     const summaryCheckout = document.getElementById('summary-checkout');
     const summaryNights = document.getElementById('summary-nights');
     const summaryGuests = document.getElementById('summary-guests');
     const summaryTotalPrice = document.getElementById('summary-total-price');
     const summaryPricePerNight = document.getElementById('summary-price-per-night');
+    const summaryRoomVideo = document.getElementById('summary-room-video') as HTMLVideoElement | null;
 
     const form = document.getElementById('checkout-form') as HTMLFormElement;
     const btnPay = document.getElementById('btn-pay') as HTMLButtonElement;
@@ -507,7 +550,11 @@ const getTranslatedBeds = (bedsStr: string) => {
 
       // Update summary fields
       if (summaryRoomName) summaryRoomName.textContent = room.name[lang as 'en' | 'es'];
-      if (summaryRoomBeds) summaryRoomBeds.textContent = `🛏. ${translateBeds(room.beds)}`;
+      if (summaryRoomBedsText) summaryRoomBedsText.textContent = translateBeds(room.beds);
+      if (summaryRoomVideo) {
+        summaryRoomVideo.src = `/videos/rooms/${room.slug}.mp4`;
+        summaryRoomVideo.load();
+      }
       if (summaryCheckin) summaryCheckin.textContent = checkInDate;
       if (summaryCheckout) summaryCheckout.textContent = checkOutDate;
       if (summaryNights) summaryNights.textContent = `${nights} ${lang === 'es' ? 'noches' : 'nights'}`;
