@@ -3,11 +3,27 @@ import Layout from '../layouts/Layout.astro';
 import { rooms } from '../data/rooms';
 import { useTranslations } from '../i18n/utils';
 import { getAvailability, daysBetween } from '../services/channex';
+import { Image } from 'astro:assets';
 
 export const prerender = false;
 
 const lang = (Astro.currentLocale || 'en') as 'en' | 'es';
 const t = useTranslations(lang);
+
+// Dynamically import all room images
+const allImages = import.meta.glob<{ default: ImageMetadata }>('../assets/rooms/**/*.jpg');
+
+// Prepare room list with resolved images
+const roomsWithImages = await Promise.all(
+  rooms.map(async (room) => {
+    const roomImages = Object.entries(allImages)
+      .filter(([path]) => path.includes(`/${room.photoFolder}/`))
+      .sort(([a], [b]) => a.localeCompare(b));
+    const firstImageEntry = roomImages[0];
+    const image = firstImageEntry ? (await firstImageEntry[1]()).default : null;
+    return { ...room, image };
+  })
+);
 
 // Get query parameters
 const url = new URL(Astro.url);
@@ -77,14 +93,15 @@ const getTranslatedBeds = (bedsStr: string) => {
       <!-- Left Column: Dates & Guest Form (8 cols) -->
       <div class="lg:col-span-7 space-y-8">
         
-        <!-- Section 1: Dates & Room adjustment -->
-        <div class="bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+        <!-- Section 1: Dates & Room Selection -->
+        <div class="bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
           <h2 class="font-display text-2xl mb-4 flex items-center gap-3 border-b border-black/5 dark:border-white/5 pb-3">
             <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">1</span>
             {lang === 'es' ? 'Detalles de la Estadía' : 'Stay Details'}
           </h2>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Inputs Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Check-in -->
             <div>
               <label for="checkin" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
@@ -96,7 +113,7 @@ const getTranslatedBeds = (bedsStr: string) => {
                 name="checkin"
                 value={checkIn}
                 min={formatDateString(today)}
-                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
               />
             </div>
 
@@ -111,24 +128,8 @@ const getTranslatedBeds = (bedsStr: string) => {
                 name="checkout"
                 value={checkOut}
                 min={checkIn}
-                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
               />
-            </div>
-
-            <!-- Room Type -->
-            <div>
-              <label for="room-type" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
-                {t('booking.roomType')}
-              </label>
-              <select
-                id="room-type"
-                name="roomType"
-                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all appearance-none"
-              >
-                {rooms.map(r => (
-                  <option value={r.slug} selected={r.slug === roomType}>{r.name[lang]}</option>
-                ))}
-              </select>
             </div>
 
             <!-- Guests -->
@@ -146,6 +147,91 @@ const getTranslatedBeds = (bedsStr: string) => {
                 <option value="3" selected={guestsCount === 3}>3 {t('booking.guests_plural')}</option>
                 <option value="4" selected={guestsCount === 4}>4 {t('booking.guests_plural')}</option>
               </select>
+            </div>
+          </div>
+
+          <!-- Hidden Room Type Select (updated programmatically by visual room cards) -->
+          <select
+            id="room-type"
+            name="roomType"
+            class="hidden"
+          >
+            {rooms.map(r => (
+              <option value={r.slug} selected={r.slug === roomType}>{r.name[lang]}</option>
+            ))}
+          </select>
+
+          <!-- Visual Room Selector Grid -->
+          <div class="space-y-4">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mt-4">
+              {lang === 'es' ? 'Selecciona tu Habitación' : 'Select Your Room'} *
+            </label>
+            
+            <div class="grid grid-cols-1 gap-4" id="visual-room-selector">
+              {roomsWithImages.map(r => {
+                const isSelected = r.slug === selectedRoom.slug;
+                return (
+                  <div
+                    data-room-slug={r.slug}
+                    class={`cursor-pointer group flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 shadow-md shadow-primary/5 ring-1 ring-primary'
+                        : 'border-black/10 dark:border-white/10 bg-[#FAFAF9] dark:bg-[#0C0A09] hover:border-primary/50'
+                    }`}
+                  >
+                    <!-- Room Thumbnail -->
+                    <div class="w-full sm:w-24 aspect-[4/3] sm:aspect-square rounded-xl overflow-hidden flex-shrink-0 bg-stone-100 dark:bg-stone-900 border border-black/5 dark:border-white/5">
+                      {r.image ? (
+                        <Image
+                          src={r.image}
+                          alt={r.name[lang]}
+                          width={120}
+                          height={120}
+                          class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div class="w-full h-full flex items-center justify-center text-2xl">🏨</div>
+                      )}
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex-1 text-center sm:text-left min-w-0">
+                      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <h4 class="font-display font-semibold text-base text-[#1C1917] dark:text-[#FAFAF9] group-hover:text-primary transition-colors truncate">
+                          {r.name[lang]}
+                        </h4>
+                        <span class="text-sm font-bold text-primary whitespace-nowrap">
+                          ${r.pricePerNight} <span class="text-xs text-[#57534E] dark:text-[#A8A29E] font-normal">/{lang === 'es' ? 'noche' : 'night'}</span>
+                        </span>
+                      </div>
+                      <p class="text-xs text-[#57534E] dark:text-[#A8A29E] line-clamp-2 mt-1 leading-relaxed">
+                        {r.description[lang]}
+                      </p>
+                      <div class="flex items-center justify-center sm:justify-start gap-3 mt-3 text-[10px] text-[#A8A29E] font-semibold uppercase tracking-wider">
+                        <span>👥 Max {r.maxGuests} {r.maxGuests === 1 ? t('booking.guest') : t('booking.guests_plural')}</span>
+                        <span>•</span>
+                        <span>🛏️ {getTranslatedBeds(r.beds)}</span>
+                      </div>
+                    </div>
+
+                    <!-- Select Button indicator -->
+                    <div class="flex-shrink-0 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        class={`w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-primary hover:text-white'
+                        }`}
+                      >
+                        {isSelected
+                          ? (lang === 'es' ? 'Seleccionada' : 'Selected')
+                          : (lang === 'es' ? 'Seleccionar' : 'Select')}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -204,6 +290,60 @@ const getTranslatedBeds = (bedsStr: string) => {
                 />
               </div>
             </div>
+
+            <!-- Traslado de Aeropuerto / Airport Pickup -->
+            <div class="pt-4 border-t border-black/5 dark:border-white/5 space-y-4">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="airport-transfer"
+                  name="airportTransfer"
+                  class="w-4 h-4 rounded text-primary focus:ring-primary border-black/10 dark:border-white/10 cursor-pointer"
+                />
+                <span class="text-sm font-medium text-[#1C1917] dark:text-[#FAFAF9]">
+                  {lang === 'es' ? '¿Necesita traslado privado desde el aeropuerto?' : 'Need a private pickup from the airport?'}
+                </span>
+              </label>
+
+              <!-- Optional Flight/Time details -->
+              <div id="transfer-details" class="hidden pl-7 space-y-4 animate-fade-in">
+                <div>
+                  <label for="flight-time" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+                    {lang === 'es' ? 'Hora aproximada de llegada de su vuelo' : 'Approximate Flight Arrival Time'}
+                  </label>
+                  <input
+                    type="time"
+                    id="flight-time"
+                    name="flightTime"
+                    class="px-4 py-3 rounded-xl bg-stone-50 dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all w-full sm:w-48 cursor-pointer"
+                  />
+                </div>
+
+                <!-- Live calculation result banner -->
+                <div id="transfer-calculation" class="hidden p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-1.5 max-w-md">
+                  <h4 class="font-semibold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    ⏱️ {lang === 'es' ? 'Cálculo de Llegada Estimada' : 'Estimated Arrival Calculation'}
+                  </h4>
+                  <p class="text-xs text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
+                    {lang === 'es' 
+                      ? 'Tiempo de tránsito: ~20-30 minutos en auto desde el Aeropuerto de Cusco (CUZ).' 
+                      : 'Transit time: ~20-30 minutes by car from Cusco Airport (CUZ).'}
+                  </p>
+                  <p class="text-xs font-semibold text-[#1C1917] dark:text-[#FAFAF9]">
+                    {lang === 'es' 
+                      ? 'Hora estimada de llegada a USGAR Hotels: ' 
+                      : 'Estimated arrival at USGAR Hotels: '}
+                    <span id="estimated-arrival-time" class="text-primary font-bold text-sm">--:--</span>
+                  </p>
+                  <p class="text-[10px] text-stone-500 italic">
+                    {lang === 'es'
+                      ? '* Estimación basada en 45 minutos (recogida de equipaje + control + traslado).'
+                      : '* Estimate based on 45 minutes (baggage claim + customs + transfer).'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </form>
       </div>
@@ -395,6 +535,89 @@ const getTranslatedBeds = (bedsStr: string) => {
     roomSelect?.addEventListener('change', updatePricing);
     guestsSelect?.addEventListener('change', updatePricing);
 
+    // Date pickers click to show calendar picker
+    checkinInput?.addEventListener('click', () => {
+      try { checkinInput.showPicker(); } catch (e) {}
+    });
+    checkoutInput?.addEventListener('click', () => {
+      try { checkoutInput.showPicker(); } catch (e) {}
+    });
+
+    // Visual Room Selection Logic
+    const roomSelector = document.getElementById('visual-room-selector');
+    const roomCards = roomSelector?.querySelectorAll('[data-room-slug]');
+    
+    roomCards?.forEach(card => {
+      card.addEventListener('click', () => {
+        const slug = card.getAttribute('data-room-slug');
+        if (!slug || !roomSelect) return;
+
+        // Set the select element's value
+        roomSelect.value = slug;
+        roomSelect.dispatchEvent(new Event('change'));
+
+        // Update active class on card elements
+        roomCards.forEach(c => {
+          const btn = c.querySelector('button');
+          if (c === card) {
+            c.classList.add('border-primary', 'bg-primary/5', 'shadow-md', 'shadow-primary/5', 'ring-1', 'ring-primary');
+            c.classList.remove('border-black/10', 'dark:border-white/10', 'bg-[#FAFAF9]', 'dark:bg-[#0C0A09]', 'hover:border-primary/50');
+            if (btn) btn.textContent = lang === 'es' ? 'Seleccionada' : 'Selected';
+            if (btn) {
+              btn.classList.add('bg-primary', 'text-white', 'shadow-sm');
+              btn.classList.remove('bg-stone-200', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+            }
+          } else {
+            c.classList.remove('border-primary', 'bg-primary/5', 'shadow-md', 'shadow-primary/5', 'ring-1', 'ring-primary');
+            c.classList.add('border-black/10', 'dark:border-white/10', 'bg-[#FAFAF9]', 'dark:bg-[#0C0A09]', 'hover:border-primary/50');
+            if (btn) btn.textContent = lang === 'es' ? 'Seleccionar' : 'Select';
+            if (btn) {
+              btn.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+              btn.classList.add('bg-stone-200', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+            }
+          }
+        });
+      });
+    });
+
+    // Airport Transfer calculation and panel visibility logic
+    const airportTransferCheckbox = document.getElementById('airport-transfer') as HTMLInputElement;
+    const transferDetails = document.getElementById('transfer-details');
+    const flightTimeInput = document.getElementById('flight-time') as HTMLInputElement;
+    const transferCalculation = document.getElementById('transfer-calculation');
+    const estimatedArrivalSpan = document.getElementById('estimated-arrival-time');
+
+    airportTransferCheckbox?.addEventListener('change', () => {
+      if (airportTransferCheckbox.checked) {
+        transferDetails?.classList.remove('hidden');
+      } else {
+        transferDetails?.classList.add('hidden');
+        if (flightTimeInput) flightTimeInput.value = '';
+        transferCalculation?.classList.add('hidden');
+      }
+    });
+
+    flightTimeInput?.addEventListener('input', () => {
+      const timeVal = flightTimeInput.value;
+      if (timeVal && estimatedArrivalSpan && transferCalculation) {
+        const [hoursStr, minutesStr] = timeVal.split(':');
+        const hours = parseInt(hoursStr, 10);
+        const minutes = parseInt(minutesStr, 10);
+        
+        const landingDate = new Date();
+        landingDate.setHours(hours);
+        landingDate.setMinutes(minutes + 45); // Add 45 mins (baggage + customs + transit)
+
+        const estHours = String(landingDate.getHours()).padStart(2, '0');
+        const estMinutes = String(landingDate.getMinutes()).padStart(2, '0');
+
+        estimatedArrivalSpan.textContent = `${estHours}:${estMinutes}`;
+        transferCalculation.classList.remove('hidden');
+      } else {
+        transferCalculation?.classList.add('hidden');
+      }
+    });
+
     // Initial pricing sync
     updatePricing();
 
@@ -433,6 +656,8 @@ const getTranslatedBeds = (bedsStr: string) => {
         const guestName = guestNameInput.value;
         const guestEmail = guestEmailInput.value;
         const guestPhone = guestPhoneInput.value;
+        const airportPickup = airportTransferCheckbox?.checked || false;
+        const flightTime = flightTimeInput?.value || '';
 
         // Step 1: Create local booking in pending state
         const bookingRes = await fetch('/api/channex/booking', {
@@ -446,6 +671,8 @@ const getTranslatedBeds = (bedsStr: string) => {
             guestName,
             guestEmail,
             guestPhone,
+            airportPickup,
+            flightTime,
           }),
         });
 

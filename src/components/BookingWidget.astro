@@ -91,6 +91,16 @@ const roomTypes = rooms.map(r => ({ value: r.slug, label: r.name[lang] }));
     const form = document.getElementById('booking-form') as HTMLFormElement;
     if (!form) return;
 
+    const checkin = document.getElementById('checkin') as HTMLInputElement;
+    const checkout = document.getElementById('checkout') as HTMLInputElement;
+
+    checkin?.addEventListener('click', () => {
+      try { checkin.showPicker(); } catch (e) {}
+    });
+    checkout?.addEventListener('click', () => {
+      try { checkout.showPicker(); } catch (e) {}
+    });
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const checkin = (document.getElementById('checkin') as HTMLInputElement)?.value;

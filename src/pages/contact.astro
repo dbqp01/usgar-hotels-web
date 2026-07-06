@@ -1,0 +1,259 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MapSection from '../components/MapSection.astro';
+import { useTranslations } from '../i18n/utils';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const lang = (Astro.currentLocale || 'en') as 'en' | 'es';
+const t = useTranslations(lang);
+---
+
+<Layout title={`${t('contact.title')} — USGAR Hotels`} lang={lang}>
+  <!-- Header Banner -->
+  <section class="relative pt-32 pb-16 px-4 bg-gradient-to-b from-primary/10 via-transparent to-transparent overflow-hidden">
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <span class="text-sm font-semibold text-primary uppercase tracking-widest">{t('nav.contact')}</span>
+      <h1 class="font-display text-4xl md:text-6xl mt-2 mb-6 leading-tight text-[#1C1917] dark:text-[#FAFAF9]">
+        {t('contact.title')}
+      </h1>
+      <p class="text-lg md:text-xl text-[#57534E] dark:text-[#A8A29E] max-w-2xl mx-auto font-body font-light leading-relaxed">
+        {t('contact.subtitle')}
+      </p>
+    </div>
+  </section>
+
+  <!-- Contact Grid -->
+  <section class="pb-24 px-4 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
+      
+      <!-- Left Column: Support Form (5 cols) -->
+      <div class="lg:col-span-5 bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+        <h2 class="font-display text-2xl text-primary font-bold border-b border-black/5 dark:border-white/5 pb-3">
+          {t('contact.getInTouch')}
+        </h2>
+
+        <form id="contact-form" class="space-y-4">
+          <!-- Name -->
+          <div>
+            <label for="contact-name" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+              {t('contact.formName')} *
+            </label>
+            <input
+              type="text"
+              id="contact-name"
+              name="name"
+              required
+              placeholder="e.g. John Doe"
+              class="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-stone-400"
+            />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="contact-email" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+              {t('contact.formEmail')} *
+            </label>
+            <input
+              type="email"
+              id="contact-email"
+              name="email"
+              required
+              placeholder="e.g. john@example.com"
+              class="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-stone-400"
+            />
+          </div>
+
+          <!-- Message -->
+          <div>
+            <label for="contact-message" class="block text-xs font-semibold uppercase tracking-wider text-[#57534E] dark:text-[#A8A29E] mb-2">
+              {t('contact.formMessage')} *
+            </label>
+            <textarea
+              id="contact-message"
+              name="message"
+              required
+              rows="4"
+              placeholder={lang === 'es' ? 'Escribe tu mensaje aquí...' : 'Write your message here...'}
+              class="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-[#0C0A09] border border-black/10 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-stone-400 resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="btn-contact-submit"
+            class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3.5 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 text-sm uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>{t('contact.formSubmit')}</span>
+            <!-- Spinner -->
+            <svg id="contact-spinner" class="hidden animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+
+          <!-- Success message -->
+          <div id="contact-success" class="hidden p-4 rounded-xl bg-[#2DB5A0]/10 border border-[#2DB5A0]/20 text-[#1F9484] dark:text-[#4ECBB8] text-xs leading-relaxed">
+            ✅ {lang === 'es' ? '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.' : 'Message sent successfully! We will get in touch with you shortly.'}
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Tourist Channels & Info (7 cols) -->
+      <div class="lg:col-span-7 space-y-8">
+        
+        <!-- Channels Section -->
+        <div class="bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+          <h2 class="font-display text-2xl text-primary font-bold border-b border-black/5 dark:border-white/5 pb-3">
+            {t('contact.directChannels')}
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- WhatsApp -->
+            <a
+              href={`https://wa.me/51984000000?text=${encodeURIComponent(lang === 'es' ? 'Hola! Tengo una consulta sobre USGAR Hotels.' : 'Hello! I have a question about USGAR Hotels.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-4 p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/40 border border-black/5 dark:border-white/5 hover:border-[#2DB5A0]/30 hover:bg-[#2DB5A0]/5 transition-all duration-300 group"
+            >
+              <div class="w-10 h-10 rounded-xl bg-[#2DB5A0]/10 text-[#2DB5A0] flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                💬
+              </div>
+              <div>
+                <h4 class="font-semibold text-xs text-[#1C1917] dark:text-[#FAFAF9]">{t('contact.whatsappText')}</h4>
+                <p class="text-[11px] text-[#A8A29E] mt-0.5">+51 984 000 000</p>
+              </div>
+            </a>
+
+            <!-- Email -->
+            <a
+              href="mailto:info@usgarhotels.com"
+              class="flex items-center gap-4 p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/40 border border-black/5 dark:border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 group"
+            >
+              <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                ✉️
+              </div>
+              <div>
+                <h4 class="font-semibold text-xs text-[#1C1917] dark:text-[#FAFAF9]">{t('contact.emailText')}</h4>
+                <p class="text-[11px] text-[#A8A29E] mt-0.5">info@usgarhotels.com</p>
+              </div>
+            </a>
+
+            <!-- International Call -->
+            <a
+              href="tel:+51984000000"
+              class="flex items-center gap-4 p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/40 border border-black/5 dark:border-white/5 hover:border-secondary/30 hover:bg-secondary/5 transition-all duration-300 group"
+            >
+              <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                📞
+              </div>
+              <div>
+                <h4 class="font-semibold text-xs text-[#1C1917] dark:text-[#FAFAF9]">{t('contact.callText')}</h4>
+                <p class="text-[11px] text-[#A8A29E] mt-0.5">{t('contact.internationalCall')} +51 984 000 000</p>
+              </div>
+            </a>
+
+            <!-- OTAs & Portals -->
+            <div class="flex items-center gap-3 p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/40 border border-black/5 dark:border-white/5">
+              <span class="text-xl">✈️</span>
+              <div class="flex gap-2">
+                <a
+                  href="https://tripadvisor.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[10px] bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                >
+                  TripAdvisor
+                </a>
+                <a
+                  href="https://booking.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[10px] bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                >
+                  Booking.com
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Travel Guide & Airport Pickup Info -->
+        <div class="bg-white dark:bg-[#1C1917] p-6 md:p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+          <h2 class="font-display text-2xl text-primary font-bold border-b border-black/5 dark:border-white/5 pb-3">
+            {t('contact.directionsTitle')}
+          </h2>
+          <p class="text-sm text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
+            {t('contact.directionsDesc')}
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+            <!-- Airport Pickup -->
+            <div class="p-5 rounded-2xl bg-[#9B6CB5]/5 border border-[#9B6CB5]/10 space-y-2">
+              <h4 class="font-semibold text-sm text-[#7A4F96] dark:text-[#B48ACC] flex items-center gap-2">
+                🚐 {t('contact.airportPickup')}
+              </h4>
+              <p class="text-xs text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
+                {t('contact.airportPickupDesc')}
+              </p>
+            </div>
+
+            <!-- Altitude Safety Warning -->
+            <div class="p-5 rounded-2xl bg-[#F5B731]/5 border border-[#F5B731]/10 space-y-2">
+              <h4 class="font-semibold text-sm text-[#D99E1B] dark:text-[#F7C75A] flex items-center gap-2">
+                🏔️ {lang === 'es' ? 'Soroche (Mal de Altura)' : 'Altitude Sickness (Soroche)'}
+              </h4>
+              <p class="text-xs text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
+                {lang === 'es'
+                  ? 'Cusco se encuentra a 3,400 metros sobre el nivel del mar. Recomendamos descansar el primer día y tomar mate de coca. Tenemos oxígeno concentrado disponible gratis.'
+                  : 'Cusco is at 3,400m altitude. We recommend taking it easy on your first day and drinking coca tea. We offer complimentary oxygen concentrators if needed.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Map Section -->
+  <MapSection />
+</Layout>
+
+<script>
+  function initContactForm() {
+    const form = document.getElementById('contact-form') as HTMLFormElement;
+    const btnSubmit = document.getElementById('btn-contact-submit') as HTMLButtonElement;
+    const spinner = document.getElementById('contact-spinner');
+    const successBanner = document.getElementById('contact-success');
+
+    if (!form || !btnSubmit || !spinner || !successBanner) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Hide success banner
+      successBanner.classList.add('hidden');
+      
+      // Disable button & show spinner
+      btnSubmit.disabled = true;
+      spinner.classList.remove('hidden');
+
+      // Simulate network request
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Reset state and show success banner
+      spinner.classList.add('hidden');
+      btnSubmit.disabled = false;
+      successBanner.classList.remove('hidden');
+      form.reset();
+    });
+  }
+
+  // Init on load
+  initContactForm();
+  // Re-init after View Transitions page swap
+  document.addEventListener('astro:after-swap', initContactForm);
+</script>

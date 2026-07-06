@@ -73,5 +73,25 @@
   },
   "theme": {
     "toggleDark": "Toggle dark mode"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We would love to hear from you. Get in touch with our team for bookings, directions, or local travel advice.",
+    "getInTouch": "Get in Touch",
+    "formName": "Your Name",
+    "formEmail": "Your Email",
+    "formMessage": "How can we help you?",
+    "formSubmit": "Send Message",
+    "directChannels": "Preferred Channels",
+    "whatsappText": "Message us on WhatsApp",
+    "emailText": "Send an Email",
+    "callText": "Call Us",
+    "internationalCall": "For international support:",
+    "tripadvisorText": "Check TripAdvisor reviews",
+    "bookingText": "Check Booking.com rates",
+    "directionsTitle": "How to Arrive",
+    "directionsDesc": "USGAR Hotels is located in San Pedro, Cusco. We offer private airport pickups to ensure a safe and smooth arrival.",
+    "airportPickup": "Airport Pickup Service",
+    "airportPickupDesc": "The airport is ~20 minutes away by car. We highly recommend booking our private pickup service to avoid unlicensed airport taxis."
   }
 }

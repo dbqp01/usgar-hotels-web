@@ -9,10 +9,13 @@ const t = useTranslations(lang);
 
 const currentYear = new Date().getFullYear();
 
+const homeUrl = getRelativeLocaleUrl(lang, '');
+const cleanHomeUrl = homeUrl.endsWith('/') ? homeUrl : `${homeUrl}/`;
+
 const quickLinks = [
-  { href: getRelativeLocaleUrl(lang, ''), label: lang === 'es' ? 'Inicio' : 'Home' },
+  { href: cleanHomeUrl, label: lang === 'es' ? 'Inicio' : 'Home' },
   { href: getRelativeLocaleUrl(lang, 'rooms'), label: t('nav.rooms') },
-  { href: getRelativeLocaleUrl(lang, '#services'), label: t('nav.services') },
+  { href: `${cleanHomeUrl}#services`, label: t('nav.services') },
   { href: getRelativeLocaleUrl(lang, 'explore'), label: t('nav.explore') },
   { href: getRelativeLocaleUrl(lang, 'book'), label: t('nav.bookNow') },
 ];

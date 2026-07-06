@@ -17,6 +17,8 @@ export interface BookingRequest {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  airportPickup?: boolean;
+  flightTime?: string;
 }
 
 export interface Booking extends BookingRequest {

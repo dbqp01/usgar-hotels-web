@@ -10,7 +10,7 @@ export const prerender = false;
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { roomId, checkIn, checkOut, guests, guestName, guestEmail, guestPhone } = body;
+    const { roomId, checkIn, checkOut, guests, guestName, guestEmail, guestPhone, airportPickup, flightTime } = body;
 
     // Validation
     if (!roomId || !checkIn || !checkOut || !guestName || !guestEmail || !guestPhone) {
@@ -28,6 +28,8 @@ export const POST: APIRoute = async ({ request }) => {
       guestName,
       guestEmail,
       guestPhone,
+      airportPickup: Boolean(airportPickup),
+      flightTime: flightTime || '',
     });
 
     return new Response(JSON.stringify(booking), {

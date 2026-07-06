@@ -73,5 +73,25 @@
   },
   "theme": {
     "toggleDark": "Cambiar modo oscuro"
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "subtitle": "Nos encantaría saber de ti. Ponte en contacto con nuestro equipo para reservas, indicaciones o consejos de viaje.",
+    "getInTouch": "Ponte en Contacto",
+    "formName": "Tu Nombre",
+    "formEmail": "Tu Correo Electrónico",
+    "formMessage": "¿Cómo podemos ayudarte?",
+    "formSubmit": "Enviar Mensaje",
+    "directChannels": "Canales Preferidos",
+    "whatsappText": "Escríbenos por WhatsApp",
+    "emailText": "Envíanos un Correo",
+    "callText": "Llámanos",
+    "internationalCall": "Para soporte internacional:",
+    "tripadvisorText": "Ver opiniones en TripAdvisor",
+    "bookingText": "Ver tarifas en Booking.com",
+    "directionsTitle": "Cómo Llegar",
+    "directionsDesc": "USGAR Hotels se encuentra en San Pedro, Cusco. Ofrecemos traslados privados desde el aeropuerto para garantizar una llegada segura.",
+    "airportPickup": "Servicio de Traslado",
+    "airportPickupDesc": "El aeropuerto está a ~20 minutos en auto. Recomendamos reservar nuestro servicio privado para evitar taxis no autorizados."
   }
 }

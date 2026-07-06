@@ -10,17 +10,21 @@ const t = useTranslations(lang);
 
 const currentPath = Astro.url.pathname;
 const targetLang = lang === 'en' ? 'es' : 'en';
+const searchParams = Astro.url.search;
 
-// Lógica de URL para cambio de idioma
-const targetPath = lang === 'en'
+// Lógica de URL para cambio de idioma (preservando parámetros de consulta)
+const targetPath = (lang === 'en'
   ? `/es${currentPath === '/' ? '' : currentPath}`
-  : currentPath.replace(/^\/es/, '') || '/';
+  : currentPath.replace(/^\/es/, '') || '/') + searchParams;
+
+const homeUrl = getRelativeLocaleUrl(lang, '');
+const cleanHomeUrl = homeUrl.endsWith('/') ? homeUrl : `${homeUrl}/`;
 
 const navLinks = [
   { href: getRelativeLocaleUrl(lang, 'rooms'), label: t('nav.rooms') },
-  { href: getRelativeLocaleUrl(lang, '#services'), label: t('nav.services') },
+  { href: `${cleanHomeUrl}#services`, label: t('nav.services') },
   { href: getRelativeLocaleUrl(lang, 'explore'), label: t('nav.explore') },
-  { href: getRelativeLocaleUrl(lang, '#contact'), label: t('nav.contact') },
+  { href: getRelativeLocaleUrl(lang, 'contact'), label: t('nav.contact') },
 ];
 ---
 
