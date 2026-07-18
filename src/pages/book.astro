@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import { rooms } from '../data/rooms';
 import { useTranslations } from '../i18n/utils';
-import { getAvailability } from '../services/channex';
 import { translateBeds, daysBetween } from '../utils/helpers';
 import { Image } from 'astro:assets';
 
@@ -47,8 +46,6 @@ const formatDateString = (d: Date) => {
 if (!checkIn) checkIn = formatDateString(tomorrow);
 if (!checkOut) checkOut = formatDateString(dayAfter);
 
-// Fetch availability for initial render
-const availableRooms = await getAvailability(checkIn, checkOut);
 const selectedRoom = rooms.find(r => r.slug === roomType) || rooms[0];
 const initialNights = daysBetween(checkIn, checkOut);
 const initialTotalPrice = selectedRoom.pricePerNight * initialNights;
@@ -484,6 +481,7 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
 
 <script>
   import { translateBeds, daysBetween } from '../utils/helpers';
+  import { createBackendBooking, getBackendAvailability, ROOM_SLUG_TO_ID } from '../services/api';
 
   // Use rooms data serialized from server (avoids hardcoding duplicates)
   const ROOMS_DATA = (window as any).__ROOMS_DATA || [];
@@ -518,6 +516,56 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
     const errorMessage = document.getElementById('error-message');
 
     const lang = (document.documentElement.lang || 'en') as 'en' | 'es';
+
+    const roomSelector = document.getElementById('visual-room-selector');
+    const roomCards = roomSelector?.querySelectorAll('[data-room-slug]');
+
+    // Dynamic availability check
+    async function checkAvailability() {
+      const checkInDate = checkinInput?.value;
+      const checkOutDate = checkoutInput?.value;
+
+      if (!checkInDate || !checkOutDate) return;
+
+      try {
+        const response = await getBackendAvailability(checkInDate, checkOutDate);
+        if (response && response.success && Array.isArray(response.data)) {
+          const availableMap = new Map(response.data.map((r: any) => [Number(r.id_room_type), r]));
+
+          roomCards?.forEach(card => {
+            const slug = card.getAttribute('data-room-slug');
+            const id = ROOM_SLUG_TO_ID[slug || ''];
+            const roomInfo = availableMap.get(id);
+            const btn = card.querySelector('button');
+
+            if (!roomInfo || Number(roomInfo.available_qty) <= 0) {
+              card.classList.add('opacity-40', 'pointer-events-none');
+              if (btn) {
+                btn.disabled = true;
+                btn.textContent = lang === 'es' ? 'No Disponible' : 'Not Available';
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('bg-stone-300', 'text-stone-500');
+              }
+            } else {
+              card.classList.remove('opacity-40', 'pointer-events-none');
+              if (btn) {
+                btn.disabled = false;
+                const isSelected = slug === roomSelect?.value;
+                if (isSelected) {
+                  btn.textContent = lang === 'es' ? 'Seleccionada' : 'Selected';
+                  btn.className = 'w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 bg-primary text-white shadow-sm cursor-pointer';
+                } else {
+                  btn.textContent = lang === 'es' ? 'Seleccionar' : 'Select';
+                  btn.className = 'w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-primary hover:text-white cursor-pointer';
+                }
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('[Availability Check] Error:', err);
+      }
+    }
 
     // Dynamic price recalculation
     function updatePricing() {
@@ -568,8 +616,14 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
         checkoutInput.value = nextDay.toISOString().split('T')[0];
       }
       updatePricing();
+      checkAvailability();
     }, { signal });
-    checkoutInput?.addEventListener('change', updatePricing, { signal });
+    
+    checkoutInput?.addEventListener('change', () => {
+      updatePricing();
+      checkAvailability();
+    }, { signal });
+    
     roomSelect?.addEventListener('change', updatePricing, { signal });
     guestsSelect?.addEventListener('change', updatePricing, { signal });
 
@@ -582,9 +636,6 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
     }, { signal });
 
     // Visual Room Selection Logic
-    const roomSelector = document.getElementById('visual-room-selector');
-    const roomCards = roomSelector?.querySelectorAll('[data-room-slug]');
-    
     roomCards?.forEach(card => {
       card.addEventListener('click', () => {
         const slug = card.getAttribute('data-room-slug');
@@ -602,16 +653,21 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
             c.classList.remove('border-black/10', 'dark:border-white/10', 'bg-[#FAFAF9]', 'dark:bg-[#0C0A09]', 'hover:border-primary/50');
             if (btn) btn.textContent = lang === 'es' ? 'Seleccionada' : 'Selected';
             if (btn) {
-              btn.classList.add('bg-primary', 'text-white', 'shadow-sm');
-              btn.classList.remove('bg-stone-200', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+              btn.className = 'w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 bg-primary text-white shadow-sm cursor-pointer';
             }
           } else {
+            // Check if card is unavailable to keep its disabled state styling
+            const cardSlug = c.getAttribute('data-room-slug');
+            const cardId = ROOM_SLUG_TO_ID[cardSlug || ''];
+            if (c.classList.contains('opacity-40')) {
+              // remains disabled
+              return;
+            }
             c.classList.remove('border-primary', 'bg-primary/5', 'shadow-md', 'shadow-primary/5', 'ring-1', 'ring-primary');
             c.classList.add('border-black/10', 'dark:border-white/10', 'bg-[#FAFAF9]', 'dark:bg-[#0C0A09]', 'hover:border-primary/50');
             if (btn) btn.textContent = lang === 'es' ? 'Seleccionar' : 'Select';
             if (btn) {
-              btn.classList.remove('bg-primary', 'text-white', 'shadow-sm');
-              btn.classList.add('bg-stone-200', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+              btn.className = 'w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-primary hover:text-white cursor-pointer';
             }
           }
         });
@@ -656,8 +712,9 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
       }
     }, { signal });
 
-    // Initial pricing sync
+    // Initial sync
     updatePricing();
+    checkAvailability();
 
     // Form Submission
     btnPay?.addEventListener('click', async (e) => {
@@ -690,71 +747,33 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
         const checkIn = checkinInput.value;
         const checkOut = checkoutInput.value;
         const roomId = roomSelect.value;
-        const guests = Number(guestsSelect.value);
         const guestName = guestNameInput.value;
         const guestEmail = guestEmailInput.value;
         const guestPhone = guestPhoneInput.value;
-        const airportPickup = airportTransferCheckbox?.checked || false;
-        const flightTime = flightTimeInput?.value || '';
 
-        // Step 1: Create local booking in pending state
-        const bookingRes = await fetch('/api/channex/booking', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            roomId,
-            checkIn,
-            checkOut,
-            guests,
-            guestName,
-            guestEmail,
-            guestPhone,
-            airportPickup,
-            flightTime,
-          }),
+        // Map room slug to backend id_room_type
+        const id_room_type = ROOM_SLUG_TO_ID[roomId] || 1;
+
+        // Call the unified backend API to create hold & payment preference
+        const booking = await createBackendBooking({
+          id_hotel: 1,
+          id_room_type,
+          checkIn,
+          checkOut,
+          guestName,
+          guestEmail,
+          guestPhone,
         });
 
-        if (!bookingRes.ok) {
-          const errData = await bookingRes.json();
-          throw new Error(errData.error || 'Failed to create booking');
-        }
-
-        const booking = await bookingRes.json();
-        const bookingId = booking.id;
-
-        // Step 2: Create Mercado Pago Preference
-        const prefRes = await fetch('/api/create-preference', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bookingId,
-            roomId,
-            checkIn,
-            checkOut,
-            guests,
-            guestName,
-            guestEmail,
-            guestPhone,
-          }),
-        });
-
-        if (!prefRes.ok) {
-          const errData = await prefRes.json();
-          throw new Error(errData.error || 'Failed to create payment preference');
-        }
-
-        const preference = await prefRes.json();
-        
-        // Step 3: Redirect to payment page (either mock or real Mercado Pago)
-        if (preference.init_point) {
-          // Detect if preference runs in mock mode, add language context if it is local
-          let redirectUrl = preference.init_point;
+        // Redirect to payment page (Mercado Pago init_point or mock)
+        if (booking.init_point) {
+          let redirectUrl = booking.init_point;
           if (redirectUrl.startsWith('/') && lang === 'es') {
             redirectUrl = `/es${redirectUrl}`;
           }
           window.location.href = redirectUrl;
         } else {
-          throw new Error('No checkout URL received');
+          throw new Error(lang === 'es' ? 'No se recibió la URL de pago.' : 'No checkout URL received.');
         }
       } catch (err: any) {
         console.error(err);
