@@ -765,7 +765,7 @@ const getTranslatedBeds = (bedsStr: string) => translateBeds(bedsStr, lang);
           guestPhone,
         });
 
-        // Redirect to payment page (Mercado Pago init_point or mock)
+        // Redirect to payment page (Mercado Pago init_point)
         if (booking.init_point) {
           let redirectUrl = booking.init_point;
           if (redirectUrl.startsWith('/') && lang === 'es') {
